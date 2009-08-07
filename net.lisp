@@ -12,7 +12,8 @@
    :output nil
    :buffering :none))
 
-(defparameter q (make-array (* 1024 1024)))
+(defparameter q (make-array (* 512 512)))
 
 (read-sequence q nc-stream)
 
+(close nc-stream)
