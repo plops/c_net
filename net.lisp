@@ -1,6 +1,7 @@
 (require :asdf)
 (require :cffi)
 (require :cells-gtk)
+(require :sb-bsd-sockets)
 (defpackage :kielhorn.martin.cgtk-show
   (:use :cells :cl :cells-gtk :sb-bsd-sockets))
 (in-package :kielhorn.martin.cgtk-show)
@@ -29,6 +30,8 @@
 
 (init-gtk)
 (start-win 'my-app)
+
+(sb-ext:run-program "net" nil :wait nil)
 
 (defparameter *host* (make-inet-address "127.0.0.1"))
 (defparameter nc-stream
@@ -88,7 +91,7 @@
 
 (defun threed-draw (self)
   ;(unload-tex)
-  (load-tex *img*)
+  ;(load-tex *img*)
   (upload-camera-image)
   (gl:clear :color-buffer-bit :depth-buffer-bit)
   (gl:with-pushed-matrix
@@ -111,7 +114,7 @@
       (gl:color 1 0 0) (gl:vertex 50 0 0) (gl:vertex 0 0 0)
       (gl:color 0 1 0) (gl:vertex 0 50 0) (gl:vertex 0 0 0)
       (gl:color 0 0 1) (gl:vertex 0 0 50) (gl:vertex 0 0 0)))
-;  (timeout-add 30 #'(lambda () (redraw (find-widget :threed))))
+  (timeout-add 10 #'(lambda () (redraw (find-widget :threed))))
   )
 
 (defmodel threed (gl-drawing-area)
@@ -120,6 +123,7 @@
       :width (c-in 300)
     :height (c-in 300)
     :init #'(lambda (self)
+	      (load-tex *img*)
 	      (gl:enable :blend :depth-test :line-smooth)
 	      (gl:blend-func :one :src-alpha)
 	      (with-integrity (:change :adjust-widget-size)
