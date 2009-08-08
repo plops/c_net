@@ -50,15 +50,6 @@
 (close nc-stream)
 |#
 
-(defun draw-grid (&optional (w 100) (h 100))
-;  (gl:line-width .7)
-  (gl:color 1 1 1 .6)
-  (gl:with-primitive :lines
-    (loop for i from 0 below w by 20 do
-	  (gl:vertex i 0) (gl:vertex i 210))
-    (loop for i from 0 below h by 20 do
-	  (gl:vertex 1 i) (gl:vertex 210 i))))
-
 (defparameter *texture* nil)
 (defun unload-tex ()
   (when *texture*
@@ -90,13 +81,10 @@
     (update-tex *img*))
 
 (defun threed-draw (self)
-  ;(unload-tex)
-  ;(load-tex *img*)
   (upload-camera-image)
   (gl:clear :color-buffer-bit :depth-buffer-bit)
   (gl:with-pushed-matrix
     (gl:translate 0 (* 9 (zpos self)) 0)
-    (draw-grid (width self) (height self))
 
     (gl:enable :texture-2d)
     (gl:bind-texture :texture-2d *texture*)
@@ -107,13 +95,7 @@
       (gl:vertex 0 512) (gl:tex-coord 0 1)
       (gl:vertex 512 512) (gl:tex-coord 1 1)
       (gl:vertex 512 0) (gl:tex-coord 1 0))
-    (gl:disable :texture-2d)
-
-    (gl:with-primitive :lines
-      (gl:line-width 2)
-      (gl:color 1 0 0) (gl:vertex 50 0 0) (gl:vertex 0 0 0)
-      (gl:color 0 1 0) (gl:vertex 0 50 0) (gl:vertex 0 0 0)
-      (gl:color 0 0 1) (gl:vertex 0 0 50) (gl:vertex 0 0 0)))
+    (gl:disable :texture-2d))
   (timeout-add 10 #'(lambda () (redraw (find-widget :threed))))
   )
 
