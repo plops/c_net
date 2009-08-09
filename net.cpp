@@ -1,3 +1,4 @@
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -149,6 +150,7 @@ public:
 
 class ErBind{};
 class ErListen{};
+class ErAccept{};
 class Net{
 public:
   int fd,connfd; 
@@ -161,18 +163,19 @@ public:
     if(bind(fd,(struct sockaddr*)&addr,sizeof(addr))<0)
       throw(ErBind());
   
-    if(listen(fd,1)<0)
+    if(listen(fd,10)<0)
       throw(ErListen());
   }
   void accept(){
-    socklen_t len;
+    socklen_t len=sizeof(addr);
     connfd=::accept(fd,(struct sockaddr*)&addr,&len);
-    if(connfd<0){
-      cerr<<"error accept"<<endl;
-      //throw("error with accept");
-    }
+    if(connfd<0)
+      throw(ErAccept());
+
     cout << "connection from "
 	 << inet_ntoa(addr.sin_addr) 
+	 << " len "
+	 << len
 	 << endl;
   }
   void close(){
@@ -191,26 +194,32 @@ public:
   }
 };
 
+char s[512*512];
+Net n;
+
+void close()
+{
+  cout << "closing socket" << endl;
+  n.close();
+}
 
 int
 main()
 {
-  Net n;
   V4L v(640,480);
-  char s[512*512];
+  cout << "waiting for accept" << endl;
+  n.accept();
+  atexit(close);
   for(;;){
-    cout << "waiting for accept" << endl;
-    n.accept();
-    for(;;){
+    {
       Frame f(v);
-      f.output("out.pgm");
+      //  f.output("out.pgm");
       for(int j=0;j<480;j++)
 	for(int i=0;i<512;i++)
 	  s[i+512*j]=f(0,i,j);
-      n.send((unsigned char*)s,sizeof(s));
     }
-    cout << "closing socket" << endl;
-    n.close();
+    cout << "." << endl;
+    n.send((unsigned char*)s,sizeof(s));
   }
   return 0;
 }
